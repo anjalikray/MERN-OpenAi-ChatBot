@@ -35,17 +35,17 @@ export const userSignup = async (
         const user = new User({ name, email, password: hashedPassword });
         await user.save();
 
-        //create token and store cookies 
-        res.clearCookie(COOKIE_NAME , {
+        //create token and store cookies
+        res.clearCookie(COOKIE_NAME, {
             domain: "localhost",
             httpOnly: true,
-            signed: true, 
-            path: "/"
-        })
+            signed: true,
+            path: "/",
+        });
 
         const token = createToken(user._id.toString(), user.email, "7d");
-        const expires = new Date()
-        expires.setDate(expires.getDate() + 7)
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 7);
         res.cookie(COOKIE_NAME, token, {
             path: "/",
             domain: "localhost",
@@ -54,8 +54,9 @@ export const userSignup = async (
             signed: true,
         });
 
-
-        return res.status(201).json({ message: "OK", id: user._id.toString() });
+        return res
+            .status(201)
+            .json({ message: "OK", name: user.name, email: user.email });
     } catch (error) {
         console.log(error);
         return res.status(200).json({ message: "ERROR", cause: error.message });
@@ -80,17 +81,17 @@ export const userLogin = async (
             return res.status(403).send("Incorrect Password");
         }
 
-        //create token and store cookies 
-        res.clearCookie(COOKIE_NAME , {
+        //create token and store cookies
+        res.clearCookie(COOKIE_NAME, {
             domain: "localhost",
             httpOnly: true,
-            signed: true, 
-            path: "/"
-        })
+            signed: true,
+            path: "/",
+        });
 
         const token = createToken(user._id.toString(), user.email, "7d");
-        const expires = new Date()
-        expires.setDate(expires.getDate() + 7)
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 7);
         res.cookie(COOKIE_NAME, token, {
             path: "/",
             domain: "localhost",
@@ -99,7 +100,9 @@ export const userLogin = async (
             signed: true,
         });
 
-        return res.status(200).json({ message: "OK", id: user._id.toString() });
+        return res
+            .status(200)
+            .json({ message: "OK", name: user.name, email: user.email });
     } catch (error) {
         console.log(error);
         return res.status(200).json({ message: "ERROR", cause: error.message });
