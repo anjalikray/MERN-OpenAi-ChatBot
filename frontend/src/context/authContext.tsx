@@ -9,6 +9,7 @@ import {
     checkAuthStatus,
     loginUser,
     logoutUser,
+    signupUser,
 } from "../helpers/api-communicator";
 
 type User = {
@@ -49,7 +50,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsLoggedIn(true);
         }
     };
-    const signin = async (name: string, email: string, password: string) => {};
+    const signin = async (name: string, email: string, password: string) => {
+        const data = await signupUser(name ,email, password);
+        if (data) {
+            setUser({ email: data.email, name: data.name });
+            setIsLoggedIn(true);
+        }
+    };
 
     const logout = async () => {
         const data = await logoutUser();
