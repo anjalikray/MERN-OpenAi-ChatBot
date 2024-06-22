@@ -4,7 +4,7 @@ import { IoMdSend } from "react-icons/io";
 import { useAuth } from "../context/authContext";
 import ChatItem from "../components/chat/ChatItem";
 import { useLayoutEffect, useRef, useState } from "react";
-import { getUserChats, sendChatRequest } from "../helpers/api-communicator";
+import { deleteUserChats, getUserChats, sendChatRequest } from "../helpers/api-communicator";
 import toast from "react-hot-toast";
 
 //static chats
@@ -90,6 +90,18 @@ const Chat = () => {
 
     const auth = useAuth();
 
+    const handleDeleteChats = async () => {
+        try{
+            toast.loading("Deleting Chats" , {id: "deletechats"})
+            await deleteUserChats()
+            setChatMessages([])
+            toast.success("Chats Deleted Successfully" , {id: "deletechats"})
+        } catch (error) {
+            console.log(error)
+            toast.error("Deleting Chats failed" , {id: "deletechats"})
+        }
+    }
+
     useLayoutEffect(() => {
         if (auth?.isLoggedIn && auth.user) {
             toast.loading("Loading Chats", { id: "loadchats" });
@@ -164,6 +176,7 @@ const Chat = () => {
                         information
                     </Typography>
                     <Button
+                        onClick={handleDeleteChats}
                         sx={{
                             width: "200px",
                             my: "auto",
