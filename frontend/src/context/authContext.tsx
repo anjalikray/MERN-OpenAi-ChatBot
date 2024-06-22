@@ -5,7 +5,11 @@ import {
     useEffect,
     useState,
 } from "react";
-import { checkAuthStatus, loginUser } from "../helpers/api-communicator";
+import {
+    checkAuthStatus,
+    loginUser,
+    logoutUser,
+} from "../helpers/api-communicator";
 
 type User = {
     name: string;
@@ -29,13 +33,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         //fetch if users cookies are valid then skip login
         async function checkStatus() {
-            const data = await checkAuthStatus()
+            const data = await checkAuthStatus();
             if (data) {
                 setUser({ email: data.email, name: data.name });
                 setIsLoggedIn(true);
             }
         }
-        checkStatus()
+        checkStatus();
     }, []);
 
     const login = async (email: string, password: string) => {
@@ -46,7 +50,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     const signin = async (name: string, email: string, password: string) => {};
-    const logout = async () => {};
+
+    const logout = async () => {
+        const data = await logoutUser();
+        if (data) {
+            setUser(null);
+            setIsLoggedIn(false);
+            window.location.reload();
+        }
+    };
 
     const value = {
         user,

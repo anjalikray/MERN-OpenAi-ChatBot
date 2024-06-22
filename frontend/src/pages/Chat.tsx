@@ -3,9 +3,14 @@ import { red } from "@mui/material/colors";
 import { IoMdSend } from "react-icons/io";
 import { useAuth } from "../context/authContext";
 import ChatItem from "../components/chat/ChatItem";
-import { useLayoutEffect, useRef, useState } from "react";
-import { deleteUserChats, getUserChats, sendChatRequest } from "../helpers/api-communicator";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+    deleteUserChats,
+    getUserChats,
+    sendChatRequest,
+} from "../helpers/api-communicator";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 //static chats
 // const chatMessages = [
@@ -71,9 +76,13 @@ type Messages = {
 };
 
 const Chat = () => {
+    const navigate = useNavigate();
+
     const [chatMessages, setChatMessages] = useState<Messages[]>([]);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
+
+    const auth = useAuth();
 
     const handleSubmit = async () => {
         // console.log(inputRef.current?.value);
@@ -88,19 +97,17 @@ const Chat = () => {
         setChatMessages([...chatData.chats]);
     };
 
-    const auth = useAuth();
-
     const handleDeleteChats = async () => {
-        try{
-            toast.loading("Deleting Chats" , {id: "deletechats"})
-            await deleteUserChats()
-            setChatMessages([])
-            toast.success("Chats Deleted Successfully" , {id: "deletechats"})
+        try {
+            toast.loading("Deleting Chats", { id: "deletechats" });
+            await deleteUserChats();
+            setChatMessages([]);
+            toast.success("Chats Deleted Successfully", { id: "deletechats" });
         } catch (error) {
-            console.log(error)
-            toast.error("Deleting Chats failed" , {id: "deletechats"})
+            console.log(error);
+            toast.error("Deleting Chats failed", { id: "deletechats" });
         }
-    }
+    };
 
     useLayoutEffect(() => {
         if (auth?.isLoggedIn && auth.user) {
@@ -116,6 +123,12 @@ const Chat = () => {
                     console.log(error);
                     toast.error("Loading chats failed", { id: "loadchats" });
                 });
+        }
+    }, [auth]);
+
+    useEffect(() => {
+        if (!auth?.user) {
+            return navigate("/login");
         }
     }, [auth]);
 

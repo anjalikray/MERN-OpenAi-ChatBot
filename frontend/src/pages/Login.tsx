@@ -3,9 +3,13 @@ import CustomizedInput from "../components/shared/CustomizedInput";
 import { IoIosLogIn } from "react-icons/io";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/authContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom"
 
 const Login = () => {
     const auth = useAuth();
+
+    const navigate = useNavigate()
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -14,15 +18,20 @@ const Login = () => {
         const password = formData.get("password") as string;
         // console.log(email , password)
         try {
-            toast.loading("Logging in..." , {id: "login"})
+            toast.loading("Logging in...", { id: "login" });
             await auth?.login(email, password);
-            toast.success("Logged In Successfully" , {id: "login"})
+            toast.success("Logged In Successfully", { id: "login" });
         } catch (error) {
-            console.log(error)
-            toast.error("LogIn Failed" , {id: "login"})
-
+            console.log(error);
+            toast.error("LogIn Failed", { id: "login" });
         }
     };
+
+    useEffect(() => {
+        if(auth?.user){
+            return navigate("/chat")
+        }
+    } , [auth])
 
     return (
         <Box width={"100%"} height={"100%"} display={"flex"} flex={1}>
