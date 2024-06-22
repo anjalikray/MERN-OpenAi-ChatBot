@@ -42,6 +42,6 @@ export const generateChatCompletion = async (
         return res.status(200).json({ chats: user.chats });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Something went wrong" });
+        return res.status(500).json({ message: "Something went horribaly wrong" });
     }
 };

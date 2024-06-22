@@ -3,65 +3,90 @@ import { red } from "@mui/material/colors";
 import { IoMdSend } from "react-icons/io";
 import { useAuth } from "../context/authContext";
 import ChatItem from "../components/chat/ChatItem";
+import { useRef, useState } from "react";
+import { sendChatRequest } from "../helpers/api-communicator";
 
-const chatMessages = [
-    {
-        role: "user",
-        content:
-            "Hello! Can you help me with some information on DevOps practices?",
-    },
-    {
-        role: "assistant",
-        content: "Of course! What specific information are you looking for?",
-    },
-    {
-        role: "user",
-        content: "I need to understand the key concepts of CI/CD.",
-    },
-    {
-        role: "assistant",
-        content:
-            "CI/CD stands for Continuous Integration and Continuous Deployment. Continuous Integration is a practice where developers regularly merge their code changes into a central repository, followed by automated builds and tests. Continuous Deployment is the process of automatically deploying the code changes to production after passing the CI phase.",
-    },
-    {
-        role: "user",
-        content: "What tools are commonly used for CI/CD?",
-    },
-    {
-        role: "assistant",
-        content:
-            "Common CI/CD tools include Jenkins, GitLab CI/CD, GitHub Actions, CircleCI, and Travis CI. Each tool offers different features and integrations to help streamline the build, test, and deployment processes.",
-    },
-    {
-        role: "user",
-        content: "Can you explain the role of Docker in a DevOps pipeline?",
-    },
-    {
-        role: "assistant",
-        content:
-            "Docker is used to create, deploy, and run applications in containers. In a DevOps pipeline, Docker helps ensure consistency across multiple development, testing, and production environments by packaging the application and its dependencies into a single container. This makes the deployment process more reliable and scalable.",
-    },
-    {
-        role: "user",
-        content: "What is Kubernetes and how does it relate to Docker?",
-    },
-    {
-        role: "assistant",
-        content:
-            "Kubernetes is an open-source container orchestration platform that automates the deployment, scaling, and management of containerized applications. It works in conjunction with Docker by managing Docker containers, providing features like load balancing, scaling, and automated rollouts and rollbacks.",
-    },
-    {
-        role: "user",
-        content: "Thank you! This has been very helpful.",
-    },
-    {
-        role: "assistant",
-        content:
-            "You're welcome! If you have any more questions, feel free to ask.",
-    },
-];
+//static chats
+// const chatMessages = [
+//     {
+//         role: "user",
+//         content:
+//             "Hello! Can you help me with some information on DevOps practices?",
+//     },
+//     {
+//         role: "assistant",
+//         content: "Of course! What specific information are you looking for?",
+//     },
+//     {
+//         role: "user",
+//         content: "I need to understand the key concepts of CI/CD.",
+//     },
+//     {
+//         role: "assistant",
+//         content:
+//             "CI/CD stands for Continuous Integration and Continuous Deployment. Continuous Integration is a practice where developers regularly merge their code changes into a central repository, followed by automated builds and tests. Continuous Deployment is the process of automatically deploying the code changes to production after passing the CI phase.",
+//     },
+//     {
+//         role: "user",
+//         content: "What tools are commonly used for CI/CD?",
+//     },
+//     {
+//         role: "assistant",
+//         content:
+//             "Common CI/CD tools include Jenkins, GitLab CI/CD, GitHub Actions, CircleCI, and Travis CI. Each tool offers different features and integrations to help streamline the build, test, and deployment processes.",
+//     },
+//     {
+//         role: "user",
+//         content: "Can you explain the role of Docker in a DevOps pipeline?",
+//     },
+//     {
+//         role: "assistant",
+//         content:
+//             "Docker is used to create, deploy, and run applications in containers. In a DevOps pipeline, Docker helps ensure consistency across multiple development, testing, and production environments by packaging the application and its dependencies into a single container. This makes the deployment process more reliable and scalable.",
+//     },
+//     {
+//         role: "user",
+//         content: "What is Kubernetes and how does it relate to Docker?",
+//     },
+//     {
+//         role: "assistant",
+//         content:
+//             "Kubernetes is an open-source container orchestration platform that automates the deployment, scaling, and management of containerized applications. It works in conjunction with Docker by managing Docker containers, providing features like load balancing, scaling, and automated rollouts and rollbacks.",
+//     },
+//     {
+//         role: "user",
+//         content: "Thank you! This has been very helpful.",
+//     },
+//     {
+//         role: "assistant",
+//         content:
+//             "You're welcome! If you have any more questions, feel free to ask.",
+//     },
+// ];
+
+type Messages = {
+    role: "user" | "assistant";
+    content: string;
+};
 
 const Chat = () => {
+    const [chatMessages, setChatMessages] = useState<Messages[]>([]);
+
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleSubmit = async () => {
+        // console.log(inputRef.current?.value);
+        const content = inputRef.current?.value as string;
+        if (inputRef && inputRef.current) {
+            inputRef.current.value = "";
+        }
+        const newMessage: Messages = { role: "user", content };
+        setChatMessages((prev) => [...prev, newMessage]);
+
+        const chatData = await sendChatRequest(content);
+        setChatMessages([...chatData.chats]);
+    };
+
     const auth = useAuth();
 
     return (
@@ -176,6 +201,7 @@ const Chat = () => {
                 >
                     {chatMessages.map((chat, index) => (
                         <ChatItem
+                            //@ts-ignore
                             content={chat.content}
                             role={chat.role}
                             key={index}
@@ -194,6 +220,7 @@ const Chat = () => {
                     }}
                 >
                     <input
+                        ref={inputRef}
                         type="text"
                         style={{
                             width: "100%",
@@ -205,7 +232,10 @@ const Chat = () => {
                             fontSize: "20px",
                         }}
                     />
-                    <IconButton sx={{ ml: "auto", color: "white" }}>
+                    <IconButton
+                        onClick={handleSubmit}
+                        sx={{ ml: "auto", color: "white" }}
+                    >
                         <IoMdSend />
                     </IconButton>
                 </div>
