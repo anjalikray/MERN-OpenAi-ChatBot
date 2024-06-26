@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/user.js";
-import { configureOpenAI } from "../config/openai-config.js";
-import { OpenAIApi, ChatCompletionRequestMessage } from "openai";
+import { openai } from "../config/openai-config.js";
+
 
 export const generateChatCompletion = async (
     req: Request,
@@ -19,24 +19,34 @@ export const generateChatCompletion = async (
             });
         }
 
-        //grab chats of user
-        const chats = user.chats.map(({ role, content }) => ({
-            role,
-            content,
-        })) as ChatCompletionRequestMessage[];
+        // Filter out any null or undefined chats
+        const validChats = user.chats.filter(chat => chat !== null && chat !== undefined);
+
+        // Grab chats of user
+        const chats = validChats.map(({ role, content }) => ({
+            role: role as 'user' | 'assistant' | 'system', // Ensure the role is one of the expected values
+            content: content as string, // Ensure the content is a string
+        }));
+
         chats.push({ content: message, role: "user" });
         user.chats.push({ content: message, role: "user" });
 
-        //send all chats with new one to open API
-        const config = configureOpenAI();
-        const openai = new OpenAIApi(config);
 
         //get latest response
-        const chatResponse = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
+        const chatResponse = await openai.chat.completions.create({
+            model: "gpt-4o",
             messages: chats,
+            stream: true,
         });
-        user.chats.push(chatResponse.data.choices[0].message);
+        let fullResponse = "";
+
+        for await (const chunk of chatResponse) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            process.stdout.write(content);
+            fullResponse += content;
+        }
+
+        user.chats.push({ content: fullResponse, role: "assistant" });
         await user.save();
 
         return res.status(200).json({ chats: user.chats });
@@ -97,7 +107,7 @@ export const deleteChats = async (
         user.chats = [];
         await user.save();
 
-        return res.status(200).json({ message: "OK"});
+        return res.status(200).json({ message: "OK" });
     } catch (error) {
         console.log(error);
         return res.status(200).json({ message: "ERROR", cause: error.message });
